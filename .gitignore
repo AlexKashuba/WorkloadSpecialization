@@ -1,0 +1,6 @@
+build/
+tests/
+cmake-build-debug
+.idea/
+*.o
+rundb
