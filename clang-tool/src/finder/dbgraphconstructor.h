@@ -13,7 +13,13 @@ class ASTContext;
 class DBGraphConstructor : public Finder {
   llvm::SmallSet<int64_t, 32> visitedFuncs;
   clang::CFGDomTree *currDomTree = nullptr;
-  std::unordered_map<unsigned, PathFragment*> blockToFragmentMap;
+  std::unordered_map<unsigned, PathFragment *> blockToFragmentMap;
+
+  std::unordered_map<clang::NamedDecl *, std::vector<DBAccess *>> rowAccessMap;
+  void extractAccesses(clang::CFGBlock *B, PathFragment *curr);
+
+  std::string genDecl(clang::NamedDecl *row, std::vector<DBAccess *> &accesses);
+  void genStructDecls();
 
 public:
   explicit DBGraphConstructor(clang::ASTContext &context);

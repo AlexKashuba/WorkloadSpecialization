@@ -32,11 +32,14 @@ void addIfNotPresent(std::vector<PathFragment *> *v, PathFragment *el) {
   }
 }
 
+//Remove blocks from the graph that do not contain accesses
 void PathFragment::pruneGraph(std::unordered_set<PathFragment *> &visited) {
   auto *new_next = new std::vector<PathFragment *>;
   for (auto child : *next) {
+    //Only visit each node once
     if (!visited.count(child))
       child->pruneGraph(visited);
+
     if (child->accesses.empty()) {
       for (auto grandchild : *child->next) {
         if (!grandchild->accesses.empty()) {
@@ -54,8 +57,8 @@ void PathFragment::pruneGraph(std::unordered_set<PathFragment *> &visited) {
 
 void PathFragment::printGraphFragment(llvm::raw_ostream &ostream) {
   ostream << blockId << " [shape=box, label=\"";
-  for (DBAccess &access : accesses) {
-    access.print(ostream);
+  for (DBAccess *access : accesses) {
+    access->print(ostream);
     ostream << "\n";
   }
   ostream << "\"];\n";

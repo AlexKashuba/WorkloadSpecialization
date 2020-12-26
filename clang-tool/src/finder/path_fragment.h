@@ -7,7 +7,7 @@
 
 struct PathFragment {
   unsigned blockId;
-  std::vector<DBAccess> accesses;
+  std::vector<DBAccess*> accesses;
   std::vector<PathFragment *> *next = new std::vector<PathFragment *>;
   std::string printGraph(llvm::StringRef functionName);
 

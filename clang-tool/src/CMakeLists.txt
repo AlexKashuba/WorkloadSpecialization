@@ -24,7 +24,7 @@ set(CLANG_TOOL_SRC
         finder/integervariablefinder.cc
         finder/dbgraphconstructor.cc
         finder/path_fragment.cpp
-)
+        utils/ast_utils.cpp utils/ast_utils.h)
 
 # remove trailing whitespaces
 string(STRIP ${LLVM_LDFLAGS} LLVM_LDFLAGS)
