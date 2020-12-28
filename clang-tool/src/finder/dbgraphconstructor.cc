@@ -8,8 +8,9 @@
 #include <clang/AST/Expr.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 
-DBGraphConstructor::DBGraphConstructor(clang::ASTContext &context)
-    : Finder(context) {}
+DBGraphConstructor::DBGraphConstructor(clang::ASTContext &context,
+                                       DBAnalysisInfoStorage &storage)
+    : Finder(context), infoStorage(storage) {}
 
 void DBGraphConstructor::start() {
   using namespace clang::ast_matchers;
@@ -63,7 +64,7 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
                                         storage.getValueOr(nullptr), nullptr};
             curr->accesses.emplace_back(access);
 
-            rowAccessMap[*obj].emplace_back(access);
+            infoStorage.rowAccessMap[*obj].emplace_back(access);
           }
         }
         if (name.contains("set_value")) {
@@ -78,61 +79,11 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
             auto *access =
                 new DBAccess{WR, columnNameStr, *obj, nullptr, args[1]};
             curr->accesses.emplace_back(access);
-            rowAccessMap[*obj].emplace_back(access);
+            infoStorage.rowAccessMap[*obj].emplace_back(access);
           }
         }
       }
     }
-  }
-}
-
-std::string DBGraphConstructor::genDecl(clang::NamedDecl *row,
-                                        std::vector<DBAccess *> &accesses) {
-  using namespace clang;
-  llvm::SmallSet<std::string, 32> inStruct;
-  std::string out;
-  llvm::raw_string_ostream ostream(out);
-  ostream << "struct " << row->getDeclName().getAsString()
-          << "_storage : row_storage_t { \n";
-  for (DBAccess *access : accesses) {
-    if (inStruct.count(access->columnName)) {
-      continue;
-    }
-    inStruct.insert(access->columnName);
-
-    std::string type;
-    std::string comment;
-    if (NamedDecl *storage = access->storage) {
-      if (auto *valueDecl = dyn_cast<ValueDecl>(storage)) {
-        type = valueDecl->getType().getAsString();
-        comment = storage->getName().str();
-      }
-    }
-
-    if (const Expr *value = tryUnwrapCast(access->value)) {
-      type = value->getType().getAsString();
-
-      llvm::raw_string_ostream commentStream(comment);
-      value->printPretty(commentStream, nullptr,
-                         PrintingPolicy(context.getLangOpts()));
-      commentStream.flush();
-    }
-
-    if (type.empty()) {
-      type = "char *";
-    }
-
-    ostream << "  " << type << " ";
-    ostream << access->columnName << ";";
-    ostream << " /* " << comment << " */\n";
-  }
-  ostream << "};\n";
-  return ostream.str();
-}
-
-void DBGraphConstructor::genStructDecls() {
-  for (auto &IT : rowAccessMap) {
-    llvm::errs() << genDecl(IT.first, IT.second);
   }
 }
 
@@ -207,8 +158,6 @@ void DBGraphConstructor::run(
       StringRef funcName = txnDecl->getName();
       std::string graph = pathFragment.printGraph(funcName);
       //      llvm::errs() << graph;
-
-      genStructDecls();
 
       // Write the graph into a file
       std::error_code err;

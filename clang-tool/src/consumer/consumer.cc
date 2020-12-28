@@ -1,28 +1,26 @@
 #include "consumer.h"
 #include "../finder/dbgraphconstructor.h"
+#include "../transformer/dbspecializer.h"
 
-XConsumer::XConsumer(clang::ASTContext &context)
-{}
+DBAnalysisConsumer::DBAnalysisConsumer(clang::ASTContext &context,
+                                       DBAnalysisInfoStorage &storage)
+    : infoStorage(storage) {}
 
-void XConsumer::HandleTranslationUnit(clang::ASTContext &context)
-{
-    rewriter.setSourceMgr(context.getSourceManager(), context.getLangOpts());
-    
-//    FunctionCallTransformer fntransformer(context, rewriter);
-//
-//    fntransformer.start();
-//    fntransformer.print(llvm::outs());
-//
-//    IntegerVariableFinder intFinder(context);
-//    intFinder.start();
-
-    DBGraphConstructor graphConstructor(context);
-    graphConstructor.start();
-
-    auto buffer = rewriter.getRewriteBufferFor(context.getSourceManager().getMainFileID());
-
-    if(buffer != nullptr)
-        buffer->write(llvm::outs());
+void DBAnalysisConsumer::HandleTranslationUnit(clang::ASTContext &context) {
+  DBGraphConstructor graphConstructor(context, infoStorage);
+  graphConstructor.start();
 }
 
+DBSpecializationConsumer::DBSpecializationConsumer(
+    clang::ASTContext &context, DBAnalysisInfoStorage &storage,
+    clang::tooling::Replacements &replacements)
+    : infoStorage(storage), replacements(replacements) {}
 
+void DBSpecializationConsumer::HandleTranslationUnit(
+    clang::ASTContext &context) {
+
+  rewriter.setSourceMgr(context.getSourceManager(), context.getLangOpts());
+  DBSpecializer specializer(context, rewriter, replacements, infoStorage);
+  specializer.start();
+  rewriter.overwriteChangedFiles();
+}

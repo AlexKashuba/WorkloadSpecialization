@@ -1,7 +1,6 @@
 #pragma once
 
 #include "finder.h"
-#include "path_fragment.h"
 #include <clang/Analysis/CFG.h>
 
 enum DBAccessType { RD, WR };
@@ -14,6 +13,7 @@ struct DBAccess {
 
   void print(llvm::raw_ostream &ostream) {
     std::string type_str = type == RD ? "RD" : "WR";
-    ostream << type_str << ":" << row->getName().str() << "[" << columnName << "]";
+    ostream << type_str << ":" << row->getName().str() << "[" << columnName
+            << "]";
   }
 };

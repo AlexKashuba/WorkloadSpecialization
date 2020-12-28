@@ -1,25 +1,37 @@
 #ifndef CONSUMER_HPP
 #define CONSUMER_HPP
 
-#include <clang/AST/ASTContext.h>
+#include "../utils/dbanalysisstorage.h"
 #include <clang/AST/ASTConsumer.h>
+#include <clang/AST/ASTContext.h>
 #include <clang/Rewrite/Core/Rewriter.h>
+#include <clang/Tooling/Core/Replacement.h>
 
-namespace clang
-{
-    class ASTContext;
+namespace clang {
+class ASTContext;
 }
 
-class XConsumer : public clang::ASTConsumer 
-{
-    private:
-    
-        clang::Rewriter rewriter;
+class DBAnalysisConsumer : public clang::ASTConsumer {
+private:
+  DBAnalysisInfoStorage &infoStorage;
 
-    public:
+public:
+  explicit DBAnalysisConsumer(clang::ASTContext &context,
+                              DBAnalysisInfoStorage &storage);
+  void HandleTranslationUnit(clang::ASTContext &context) override;
+};
 
-        explicit XConsumer(clang::ASTContext &context);
-        virtual void HandleTranslationUnit(clang::ASTContext &context) override;
+class DBSpecializationConsumer : public clang::ASTConsumer {
+private:
+  DBAnalysisInfoStorage &infoStorage;
+  clang::Rewriter rewriter;
+  clang::tooling::Replacements &replacements;
+
+public:
+  explicit DBSpecializationConsumer(clang::ASTContext &context,
+                                    DBAnalysisInfoStorage &storage,
+                                    clang::tooling::Replacements &replacements);
+  void HandleTranslationUnit(clang::ASTContext &context) override;
 };
 
 #endif

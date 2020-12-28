@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../utils/dbanalysisstorage.h"
 #include "finder.h"
 #include "path_fragment.h"
 #include "clang/Analysis/Analyses/Dominators.h"
@@ -15,14 +16,12 @@ class DBGraphConstructor : public Finder {
   clang::CFGDomTree *currDomTree = nullptr;
   std::unordered_map<unsigned, PathFragment *> blockToFragmentMap;
 
-  std::unordered_map<clang::NamedDecl *, std::vector<DBAccess *>> rowAccessMap;
   void extractAccesses(clang::CFGBlock *B, PathFragment *curr);
 
-  std::string genDecl(clang::NamedDecl *row, std::vector<DBAccess *> &accesses);
-  void genStructDecls();
+  DBAnalysisInfoStorage &infoStorage;
 
 public:
-  explicit DBGraphConstructor(clang::ASTContext &context);
+  explicit DBGraphConstructor(clang::ASTContext &context, DBAnalysisInfoStorage &infoStorage);
 
   void trace(clang::CFGBlock *B, PathFragment *curr, int depth);
   void start() override;
