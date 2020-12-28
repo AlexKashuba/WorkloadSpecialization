@@ -41,8 +41,13 @@ private:
 	// each thread has several arenas for different block size
 	Arena ** _arenas;
 	int _bucket_cnt;
+#ifndef __APPLE__
     std::pair<pthread_t, int>* pid_arena;//                     max_arena_id;
-    pthread_mutex_t         map_lock; // only used for pid_to_arena update
+#else
+  std::pair<uint64_t, int>* pid_arena;//                     max_arena_id;
+#endif
+
+  pthread_mutex_t         map_lock; // only used for pid_to_arena update
 };
 
 #endif
