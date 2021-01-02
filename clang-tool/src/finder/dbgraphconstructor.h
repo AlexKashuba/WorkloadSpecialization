@@ -19,9 +19,11 @@ class DBGraphConstructor : public Finder {
   void extractAccesses(clang::CFGBlock *B, PathFragment *curr);
 
   DBAnalysisInfoStorage &infoStorage;
+  std::string currTxn;
+  std::string file;
 
 public:
-  explicit DBGraphConstructor(clang::ASTContext &context, DBAnalysisInfoStorage &infoStorage);
+  explicit DBGraphConstructor(clang::ASTContext &context, DBAnalysisInfoStorage &infoStorage, std::string &file);
 
   void trace(clang::CFGBlock *B, PathFragment *curr, int depth);
   void start() override;

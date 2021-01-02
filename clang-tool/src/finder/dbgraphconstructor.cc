@@ -9,18 +9,29 @@
 #include <clang/ASTMatchers/ASTMatchers.h>
 
 DBGraphConstructor::DBGraphConstructor(clang::ASTContext &context,
-                                       DBAnalysisInfoStorage &storage)
-    : Finder(context), infoStorage(storage) {}
+                                       DBAnalysisInfoStorage &storage,
+                                       std::string &file)
+    : Finder(context), infoStorage(storage), file(file) {}
 
 void DBGraphConstructor::start() {
   using namespace clang::ast_matchers;
 
-  MatchFinder matchFinder;
+  MatchFinder getRowMatchFinder;
+  auto getRowCall =
+      hasDescendant(callExpr(callee(functionDecl(hasName("get_row")))));
+  auto getRowAssignmentMatcher =
+      binaryOperator(isAssignmentOperator(), getRowCall)
+          .bind("getRowAssignment");
+  auto getRowDeclMatcher = varDecl(getRowCall).bind("getRowDecl");
 
+  getRowMatchFinder.addMatcher(getRowAssignmentMatcher, this);
+  getRowMatchFinder.addMatcher(getRowDeclMatcher, this);
+  getRowMatchFinder.matchAST(context);
+
+  MatchFinder txnMatchFinder;
   auto txnCodeMatcher = functionDecl(matchesName(".*run_.*")).bind("txnMethod");
-  matchFinder.addMatcher(txnCodeMatcher, this);
-
-  matchFinder.matchAST(context);
+  txnMatchFinder.addMatcher(txnCodeMatcher, this);
+  txnMatchFinder.matchAST(context);
 }
 
 void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
@@ -56,15 +67,29 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
             Optional<NamedDecl *> storage;
 
             // XXX: char* returns the value for some reason
+            std::string cType, extraInfo;
+            bool isPtr = false;
             if (CE->getNumArgs() > 1) {
               storage = extractDecl(args[1]);
+              if (auto *valueDecl = dyn_cast<ValueDecl>(*storage)) {
+                QualType ty = valueDecl->getType();
+                cType = ty.getAsString();
+                isPtr = ty->isPointerType();
+                extraInfo = (*storage)->getName().str();
+              }
+            } else {
+              cType = "char *";
+              isPtr = true;
             }
 
-            auto *access = new DBAccess{RD, columnNameStr, *obj,
-                                        storage.getValueOr(nullptr), nullptr};
+            std::string rowName = (*obj)->getName().str();
+            auto *access =
+                new DBAccess{RD,    currTxn,   rowName,           columnNameStr,
+                             cType, extraInfo, CE->getBeginLoc(), isPtr};
             curr->accesses.emplace_back(access);
 
-            infoStorage.rowAccessMap[*obj].emplace_back(access);
+            infoStorage.fileAccessMap[file].insert(access);
+            infoStorage.rowAccessMap[rowName].emplace_back(access);
           }
         }
         if (name.contains("set_value")) {
@@ -76,10 +101,26 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
               columnNameStr = (*column)->getDeclName().getAsString();
             }
 
+            std::string cType, extraInfo;
+            bool isPtr = false;
+            if (const Expr *value = tryUnwrapCast(args[1])) {
+              QualType ty = value->getType();
+              cType = ty.getAsString();
+              isPtr = ty->isPointerType();
+
+              llvm::raw_string_ostream commentStream(extraInfo);
+              value->printPretty(commentStream, nullptr,
+                                 PrintingPolicy(context.getLangOpts()));
+              commentStream.flush();
+            }
+
+            std::string rowName = (*obj)->getName().str();
             auto *access =
-                new DBAccess{WR, columnNameStr, *obj, nullptr, args[1]};
+                new DBAccess{WR,    currTxn,   rowName,          columnNameStr,
+                             cType, extraInfo, CE->getBeginLoc(), isPtr};
             curr->accesses.emplace_back(access);
-            infoStorage.rowAccessMap[*obj].emplace_back(access);
+            infoStorage.fileAccessMap[file].insert(access);
+            infoStorage.rowAccessMap[rowName].emplace_back(access);
           }
         }
       }
@@ -127,6 +168,15 @@ void DBGraphConstructor::run(
     const clang::ast_matchers::MatchFinder::MatchResult &result) {
   using namespace clang;
 
+  if (const auto *getRowAssignment =
+          result.Nodes.getNodeAs<BinaryOperator>("getRowAssignment")) {
+    getRowAssignment->getBeginLoc().dump(context.getSourceManager());
+  }
+
+  if (const auto *getRowDecl = result.Nodes.getNodeAs<VarDecl>("getRowDecl")) {
+    getRowDecl->getBeginLoc().dump(context.getSourceManager());
+  }
+
   // Find a txn function
   if (const auto *txnDecl = result.Nodes.getNodeAs<FunctionDecl>("txnMethod")) {
     if (Stmt *txnBody = txnDecl->getBody()) {
@@ -149,7 +199,8 @@ void DBGraphConstructor::run(
       blockToFragmentMap.clear();
 
       // Trace all paths in the CFG and construct a new fragment graph
-      llvm::errs() << "DB Graph txn: " << txnDecl->getNameAsString() << "\n";
+      currTxn = txnDecl->getNameAsString();
+      llvm::errs() << "DB Graph txn: " << currTxn << "\n";
       CFGBlock *entry = &sourceCFG->getEntry();
       PathFragment pathFragment{.blockId = entry->getBlockID()};
       trace(entry, &pathFragment, 0);
@@ -157,7 +208,6 @@ void DBGraphConstructor::run(
       // Prune and print the access graph
       StringRef funcName = txnDecl->getName();
       std::string graph = pathFragment.printGraph(funcName);
-      //      llvm::errs() << graph;
 
       // Write the graph into a file
       std::error_code err;

@@ -10,12 +10,13 @@ std::unique_ptr<clang::ASTConsumer>
 DBAnalysisFrontendAction::CreateASTConsumer(clang::CompilerInstance &compiler,
                                             llvm::StringRef inFile) {
   return std::unique_ptr<clang::ASTConsumer>(
-      new DBAnalysisConsumer(compiler.getASTContext(), infoStorage));
+      new DBAnalysisConsumer(compiler.getASTContext(), infoStorage, inFile.str()));
 }
 
 std::unique_ptr<clang::ASTConsumer>
 DBTransformationFrontendAction::CreateASTConsumer(
     clang::CompilerInstance &compiler, llvm::StringRef inFile) {
+  std::string file = inFile.str();
   return std::unique_ptr<clang::ASTConsumer>(new DBSpecializationConsumer(
-      compiler.getASTContext(), infoStorage, replacements[inFile.str()]));
+      compiler.getASTContext(), infoStorage, replacements[file], file));
 }

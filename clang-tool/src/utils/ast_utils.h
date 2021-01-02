@@ -6,6 +6,11 @@
 #include <clang/AST/Expr.h>
 #include <clang/ASTMatchers/ASTMatchers.h>
 
+namespace clang {
+class SourceLocation;
+class ASTContext;
+}
+
 const clang::Expr *tryUnwrapCast(const clang::Expr *node);
 llvm::Optional<clang::NamedDecl *> extractDecl(const clang::Expr *node);
 

@@ -14,10 +14,12 @@ class ASTContext;
 class DBAnalysisConsumer : public clang::ASTConsumer {
 private:
   DBAnalysisInfoStorage &infoStorage;
+  std::string file;
 
 public:
   explicit DBAnalysisConsumer(clang::ASTContext &context,
-                              DBAnalysisInfoStorage &storage);
+                              DBAnalysisInfoStorage &storage,
+                              std::string file);
   void HandleTranslationUnit(clang::ASTContext &context) override;
 };
 
@@ -26,11 +28,13 @@ private:
   DBAnalysisInfoStorage &infoStorage;
   clang::Rewriter rewriter;
   clang::tooling::Replacements &replacements;
+  std::string file;
 
 public:
   explicit DBSpecializationConsumer(clang::ASTContext &context,
                                     DBAnalysisInfoStorage &storage,
-                                    clang::tooling::Replacements &replacements);
+                                    clang::tooling::Replacements &replacements,
+                                    std::string file);
   void HandleTranslationUnit(clang::ASTContext &context) override;
 };
 
