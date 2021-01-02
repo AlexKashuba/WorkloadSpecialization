@@ -1,4 +1,6 @@
-#if TPCC_SMALL 
+#pragma once
+
+#if TPCC_SMALL
 enum {
 	W_ID,
 	W_NAME,

@@ -119,7 +119,7 @@ row_t * txn_man::get_row_read(row_t * row, access_t type) {
 }
  */
 
-row_t * txn_man::get_row(row_t * row, access_t type) {
+row_t * txn_man::get_row(row_t * row, access_t type, row_storage *t_storage) {
 	if (CC_ALG == HSTORE)
 		return row;
 	uint64_t starttime = get_sys_clock();
@@ -131,7 +131,7 @@ row_t * txn_man::get_row(row_t * row, access_t type) {
 			mem_allocator.alloc(sizeof(Access), part_id);
 		num_accesses_alloc ++;
 	}
-	rc = row->get_row(type, this, accesses[ row_cnt ]->data);
+	rc = row->get_row(type, this, accesses[ row_cnt ]->data, t_storage);
 	if (rc == Abort) {
 		return NULL;
 	}

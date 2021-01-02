@@ -1,5 +1,6 @@
 CC=g++
-CFLAGS=-Wall -g -std=c++0x
+#CFLAGS=-Wall -g -std=c++0x #-fsanitize=address -fno-omit-frame-pointer
+CFLAGS=-std=c++0x -O3
 
 .SUFFIXES: .o .cpp .h
 
@@ -7,7 +8,7 @@ SRC_DIRS = ./ ./benchmarks/ ./concurrency_control/ ./storage/ ./system/
 DEPS = -I. -I./benchmarks -I./concurrency_control -I./storage -I./system
 
 CFLAGS += $(DEPS) -D NOGRAPHITE=1 -Werror
-LDFLAGS = -Wall -L. -pthread -g -lrt -std=c++0x 
+LDFLAGS = -Wall -L. -pthread -g -lrt -std=c++0x #-lasan
 LDFLAGS += $(CFLAGS)
 
 CPPS = $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)*.cpp)) 

@@ -8,6 +8,7 @@
 class workload;
 class thread_t;
 class row_t;
+struct row_storage;
 class table_t;
 class base_query;
 class INDEX;
@@ -79,7 +80,7 @@ public:
   // For VLL
   TxnType vll_txn_type;
   itemid_t *index_read(INDEX *index, idx_key_t key, int part_id);
-  row_t *get_row(row_t *row, access_t type);
+  row_t *get_row(row_t *row, access_t type, row_storage *t_storage=NULL);
 
 private:
   // insert rows

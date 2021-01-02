@@ -248,6 +248,10 @@ RC tpcc_txn_man::run_payment(tpcc_query *query) {
   return finish(rc);
 }
 
+static void fake_func(void *){
+  return;
+}
+
 RC tpcc_txn_man::run_new_order(tpcc_query *query) {
   RC rc = RCOK;
   uint64_t key;
@@ -366,7 +370,11 @@ EXEC SQL INSERT INTO NEW_ORDER (no_o_id, no_d_id, no_w_id)
     //		assert(rc == RCOK);
     row_t *r_item = ((row_t *)item->location);
 
+//    run_new_order_r_item_local_storage r_item_storage;
+//    row_t *r_item_local = get_row(r_item, RD, &r_item_storage);
+
     row_t *r_item_local = get_row(r_item, RD);
+
     if (r_item_local == NULL) {
       return finish(Abort);
     }
@@ -375,6 +383,9 @@ EXEC SQL INSERT INTO NEW_ORDER (no_o_id, no_d_id, no_w_id)
     // char * i_data;
 
     r_item_local->get_value(I_PRICE, i_price);
+//    i_price = r_item_storage.f_I_PRICE;
+    fake_func(&i_price);
+
     // i_name = r_item_local->get_value(I_NAME);
     // i_data = r_item_local->get_value(I_DATA);
 
