@@ -283,6 +283,7 @@ RC tpcc_txn_man::run_new_order(tpcc_query *query) {
   }
   double w_tax;
   r_wh_local->get_value(W_TAX, w_tax);
+  fake_func(&w_tax);
   key = custKey(c_id, d_id, w_id);
   index = _wl->i_customer_id;
   item = index_read(index, key, wh_to_part(w_id));
@@ -298,6 +299,7 @@ RC tpcc_txn_man::run_new_order(tpcc_query *query) {
   // char * c_last;
   // char * c_credit;
   r_cust_local->get_value(C_DISCOUNT, c_discount);
+  fake_func(&c_discount);
   // c_last = r_cust_local->get_value(C_LAST);
   // c_credit = r_cust_local->get_value(C_CREDIT);
 
