@@ -27,7 +27,7 @@ int main(int argc, const char **argv) {
   DBTransformationFrontendActionFactory transformationFactory(
       storage, Tool.getReplacements());
 
-  if (int Error = Tool.run(&transformationFactory)) {
+  if (int Error = Tool.runAndSave(&transformationFactory)) {
     return Error;
   }
 
@@ -35,6 +35,7 @@ int main(int argc, const char **argv) {
   for (auto &r : Tool.getReplacements()) {
     llvm::outs() << r.first << "\n";
   }
+
 
   //  for (auto &sourceFile : optionsParser.getSourcePathList()) {
   //    if (!utils::fileExists(sourceFile)) {

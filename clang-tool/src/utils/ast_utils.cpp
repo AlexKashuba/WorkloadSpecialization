@@ -23,3 +23,20 @@ llvm::Optional<clang::NamedDecl *> extractDecl(const clang::Expr *node) {
   }
   return {};
 }
+
+const clang::FunctionDecl *findEnclosingFunction(const clang::Stmt *child, clang::ASTContext &context) {
+  using namespace clang;
+  DynTypedNode ST = DynTypedNode::create(*child);
+
+  while (true) {
+    const auto& parents = context.getParents(ST);
+    if ( parents.empty() ) {
+      llvm::errs() << "Can not find parent\n";
+      return nullptr;
+    }
+    if(auto decl = parents[0].get<FunctionDecl>()){
+      return decl;
+    }
+    ST = parents[0];
+  }
+}

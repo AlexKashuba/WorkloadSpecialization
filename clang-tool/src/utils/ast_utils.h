@@ -13,5 +13,6 @@ class ASTContext;
 
 const clang::Expr *tryUnwrapCast(const clang::Expr *node);
 llvm::Optional<clang::NamedDecl *> extractDecl(const clang::Expr *node);
+const clang::FunctionDecl *findEnclosingFunction(const clang::Stmt *child, clang::ASTContext &context);
 
 #endif // CLANG_TOOL_AST_UTILS_H

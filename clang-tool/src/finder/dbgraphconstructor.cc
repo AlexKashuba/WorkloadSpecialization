@@ -16,17 +16,6 @@ DBGraphConstructor::DBGraphConstructor(clang::ASTContext &context,
 void DBGraphConstructor::start() {
   using namespace clang::ast_matchers;
 
-  MatchFinder getRowMatchFinder;
-  auto getRowCall =
-      hasDescendant(callExpr(callee(functionDecl(hasName("get_row")))));
-  auto getRowAssignmentMatcher =
-      binaryOperator(isAssignmentOperator(), getRowCall)
-          .bind("getRowAssignment");
-  auto getRowDeclMatcher = varDecl(getRowCall).bind("getRowDecl");
-
-  getRowMatchFinder.addMatcher(getRowAssignmentMatcher, this);
-  getRowMatchFinder.addMatcher(getRowDeclMatcher, this);
-  getRowMatchFinder.matchAST(context);
 
   MatchFinder txnMatchFinder;
   auto txnCodeMatcher = functionDecl(matchesName(".*run_.*")).bind("txnMethod");
@@ -44,18 +33,6 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
       if (const auto *CE = dyn_cast<CXXMemberCallExpr>(S->getStmt())) {
         const FunctionDecl *func = CE->getDirectCallee();
         auto name = func->getName();
-        //        if (name.contains("get_row")) {
-        //          //TODO: determine the accessed table
-        //          auto args = CE->getArgs();
-        //          if (Optional<NamedDecl *> row_decl = extractDecl(args[0])) {
-        //            (*row_decl)->getDeclName().dump();
-        //          }
-        //
-        //          if (Optional<NamedDecl *> accessType = extractDecl(args[1]))
-        //          {
-        //            (*accessType)->getDeclName().dump();
-        //          }
-        //        }
         if (name.contains("get_value")) {
           if (Optional<NamedDecl *> obj =
                   extractDecl(CE->getImplicitObjectArgument())) {
@@ -84,12 +61,12 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
 
             std::string rowName = (*obj)->getName().str();
             auto *access =
-                new DBAccess{RD,    currTxn,   rowName,           columnNameStr,
-                             cType, extraInfo, CE->getBeginLoc(), isPtr};
+                new DBAccess{RD,    {currTxn,   rowName},           columnNameStr,
+                             cType, extraInfo, CE->getSourceRange(), isPtr};
             curr->accesses.emplace_back(access);
 
             infoStorage.fileAccessMap[file].insert(access);
-            infoStorage.rowAccessMap[rowName].emplace_back(access);
+            infoStorage.rowAccessMap[access->row].emplace_back(access);
           }
         }
         if (name.contains("set_value")) {
@@ -116,11 +93,11 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
 
             std::string rowName = (*obj)->getName().str();
             auto *access =
-                new DBAccess{WR,    currTxn,   rowName,          columnNameStr,
-                             cType, extraInfo, CE->getBeginLoc(), isPtr};
+                new DBAccess{WR,    {currTxn,   rowName},           columnNameStr,
+                             cType, extraInfo, CE->getSourceRange(), isPtr};
             curr->accesses.emplace_back(access);
             infoStorage.fileAccessMap[file].insert(access);
-            infoStorage.rowAccessMap[rowName].emplace_back(access);
+            infoStorage.rowAccessMap[access->row].emplace_back(access);
           }
         }
       }
@@ -168,14 +145,6 @@ void DBGraphConstructor::run(
     const clang::ast_matchers::MatchFinder::MatchResult &result) {
   using namespace clang;
 
-  if (const auto *getRowAssignment =
-          result.Nodes.getNodeAs<BinaryOperator>("getRowAssignment")) {
-    getRowAssignment->getBeginLoc().dump(context.getSourceManager());
-  }
-
-  if (const auto *getRowDecl = result.Nodes.getNodeAs<VarDecl>("getRowDecl")) {
-    getRowDecl->getBeginLoc().dump(context.getSourceManager());
-  }
 
   // Find a txn function
   if (const auto *txnDecl = result.Nodes.getNodeAs<FunctionDecl>("txnMethod")) {

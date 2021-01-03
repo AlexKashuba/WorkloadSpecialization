@@ -9,7 +9,8 @@
 struct DBAnalysisInfoStorage {
   bool addedStructDefs = false;
   std::unordered_map<std::string, std::unordered_set<DBAccess *>> fileAccessMap;
-  std::unordered_map<std::string, std::vector<DBAccess *>> rowAccessMap;
+  std::unordered_map<DBRow, std::vector<DBAccess *>> rowAccessMap;
+//  std::unordered_map<std::string, std::vector<DBGetRow>> fileGetRowMap;
 };
 
 #endif // CLANG_TOOL_DBANALYSISSTORAGE_H

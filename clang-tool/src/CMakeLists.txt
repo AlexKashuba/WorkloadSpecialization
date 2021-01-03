@@ -21,7 +21,6 @@ set(CLANG_TOOL_SRC
         transformer/dbspecializer.cc
         
         finder/finder.cc
-        finder/integervariablefinder.cc
         finder/dbgraphconstructor.cc
         finder/path_fragment.cpp
         utils/ast_utils.cpp utils/ast_utils.h utils/dbanalysisstorage.cpp utils/dbanalysisstorage.h)

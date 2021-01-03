@@ -26,4 +26,8 @@ void DBSpecializationConsumer::HandleTranslationUnit(
   DBSpecializer specializer(context, rewriter, replacements, infoStorage, file);
   specializer.start();
   rewriter.overwriteChangedFiles();
+  if(!clang::tooling::applyAllReplacements(replacements, rewriter)){
+    llvm::errs() << "couldn't apply all replacements\n";
+  }
+//  replacements.clear();
 }
