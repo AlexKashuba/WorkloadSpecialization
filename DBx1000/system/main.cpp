@@ -2,6 +2,7 @@
 #include "ycsb.h"
 #include "tpcc.h"
 #include "test.h"
+#include "synthetic.h"
 #include "thread.h"
 #include "manager.h"
 #include "mem_alloc.h"
@@ -39,6 +40,9 @@ int main(int argc, char* argv[])
 			m_wl = new TestWorkload; 
 			((TestWorkload *)m_wl)->tick();
 			break;
+                case SYNTH :
+                        m_wl = new SynthWorkload;
+                        break;
 		default:
 			assert(false);
 	}

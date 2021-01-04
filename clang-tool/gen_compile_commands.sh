@@ -34,6 +34,16 @@ cat << EOF
 },
 {
   "directory": "${PROJECT_PATH}/DBx1000/build",
+  "command": "clang++  -DNOGRAPHITE=1 ${EXTRA_FLAGS} -I${PROJECT_PATH}/DBx1000 -I${PROJECT_PATH}/DBx1000/benchmarks -I${PROJECT_PATH}/DBx1000/concurrency_control -I${PROJECT_PATH}/DBx1000/storage -I${PROJECT_PATH}/DBx1000/system  -pthread -std=c++11 -Wno-deprecated-declarations   -o ${BUILD_DIR}/benchmarks/synth_txn.cpp.o -c ${PROJECT_PATH}/DBx1000/benchmarks/synth_txn.cpp",
+  "file": "${PROJECT_PATH}/DBx1000/benchmarks/synth_txn.cpp"
+},
+{
+  "directory": "${PROJECT_PATH}/DBx1000/build",
+  "command": "clang++  -DNOGRAPHITE=1 ${EXTRA_FLAGS} -I${PROJECT_PATH}/DBx1000 -I${PROJECT_PATH}/DBx1000/benchmarks -I${PROJECT_PATH}/DBx1000/concurrency_control -I${PROJECT_PATH}/DBx1000/storage -I${PROJECT_PATH}/DBx1000/system  -pthread -std=c++11 -Wno-deprecated-declarations   -o ${BUILD_DIR}/benchmarks/synth_wl.cpp.o -c ${PROJECT_PATH}/DBx1000/benchmarks/synth_wl.cpp",
+  "file": "${PROJECT_PATH}/DBx1000/benchmarks/synth_wl.cpp"
+},
+{
+  "directory": "${PROJECT_PATH}/DBx1000/build",
   "command": "clang++  -DNOGRAPHITE=1 ${EXTRA_FLAGS} -I${PROJECT_PATH}/DBx1000 -I${PROJECT_PATH}/DBx1000/benchmarks -I${PROJECT_PATH}/DBx1000/concurrency_control -I${PROJECT_PATH}/DBx1000/storage -I${PROJECT_PATH}/DBx1000/system  -pthread -std=c++11 -Wno-deprecated-declarations   -o ${BUILD_DIR}/benchmarks/ycsb_query.cpp.o -c ${PROJECT_PATH}/DBx1000/benchmarks/ycsb_query.cpp",
   "file": "${PROJECT_PATH}/DBx1000/benchmarks/ycsb_query.cpp"
 },

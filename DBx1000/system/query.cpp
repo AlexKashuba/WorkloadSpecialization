@@ -4,6 +4,7 @@
 #include "table.h"
 #include "ycsb_query.h"
 #include "tpcc_query.h"
+#include "synth_query.h"
 
 /*************************************************/
 //     class Query_queue
@@ -38,14 +39,19 @@ Query_thd::init(workload * h_wl, int thread_id) {
 	queries = (ycsb_query *) 
 		mem_allocator.alloc(sizeof(ycsb_query) * request_cnt, thread_id);
 #elif WORKLOAD == TPCC
-	queries = (tpcc_query *) 
+	queries = (tpcc_query *)
 		mem_allocator.alloc(sizeof(tpcc_query) * request_cnt, thread_id);
+#elif WORKLOAD == SYNTH
+        queries = (synth_query *)
+                mem_allocator.alloc(sizeof(synth_query) * request_cnt, thread_id);
 #endif
 	for (UInt32 qid = 0; qid < request_cnt; qid ++) {
 #if WORKLOAD == YCSB	
 		new(&queries[qid]) ycsb_query();
 #elif WORKLOAD == TPCC
 		new(&queries[qid]) tpcc_query();
+#elif WORKLOAD == SYNTH
+                new(&queries[qid]) synth_query();
 #endif
 		queries[qid].init(thread_id, h_wl);
 	}

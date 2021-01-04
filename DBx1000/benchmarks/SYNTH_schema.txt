@@ -1,0 +1,10 @@
+//size, type, name
+TABLE=MAIN_TABLE
+	4,int,F0
+	8,double,F1
+	4,int,F2
+	8,uint64,F3
+	500,string,F4
+
+INDEX=MAIN_INDEX
+	MAIN_TABLE,0
