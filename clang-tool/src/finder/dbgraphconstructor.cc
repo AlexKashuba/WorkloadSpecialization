@@ -16,7 +16,6 @@ DBGraphConstructor::DBGraphConstructor(clang::ASTContext &context,
 void DBGraphConstructor::start() {
   using namespace clang::ast_matchers;
 
-
   MatchFinder txnMatchFinder;
   auto txnCodeMatcher = functionDecl(matchesName(".*run_.*")).bind("txnMethod");
   txnMatchFinder.addMatcher(txnCodeMatcher, this);
@@ -37,10 +36,7 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
           if (Optional<NamedDecl *> obj =
                   extractDecl(CE->getImplicitObjectArgument())) {
             auto args = CE->getArgs();
-            std::string columnNameStr;
-            if (Optional<NamedDecl *> column = extractDecl(args[0])) {
-              columnNameStr = (*column)->getDeclName().getAsString();
-            }
+            std::string columnNameStr = getColumnString(args[0]);
             Optional<NamedDecl *> storage;
 
             // XXX: char* returns the value for some reason
@@ -60,9 +56,9 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
             }
 
             std::string rowName = (*obj)->getName().str();
-            auto *access =
-                new DBAccess{RD,    {currTxn,   rowName},           columnNameStr,
-                             cType, extraInfo, CE->getSourceRange(), isPtr};
+            auto *access = new DBAccess{
+                RD,        {currTxn, rowName},   columnNameStr, cType,
+                extraInfo, CE->getSourceRange(), isPtr};
             curr->accesses.emplace_back(access);
 
             infoStorage.fileAccessMap[file].insert(access);
@@ -73,11 +69,7 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
           if (Optional<NamedDecl *> obj =
                   extractDecl(CE->getImplicitObjectArgument())) {
             auto args = CE->getArgs();
-            std::string columnNameStr;
-            if (Optional<NamedDecl *> column = extractDecl(args[0])) {
-              columnNameStr = (*column)->getDeclName().getAsString();
-            }
-
+            std::string columnNameStr = getColumnString(args[0]);
             std::string cType, extraInfo;
             bool isPtr = false;
             if (const Expr *value = tryUnwrapCast(args[1])) {
@@ -92,9 +84,9 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
             }
 
             std::string rowName = (*obj)->getName().str();
-            auto *access =
-                new DBAccess{WR,    {currTxn,   rowName},           columnNameStr,
-                             cType, extraInfo, CE->getSourceRange(), isPtr};
+            auto *access = new DBAccess{
+                WR,        {currTxn, rowName},   columnNameStr, cType,
+                extraInfo, CE->getSourceRange(), isPtr};
             curr->accesses.emplace_back(access);
             infoStorage.fileAccessMap[file].insert(access);
             infoStorage.rowAccessMap[access->row].emplace_back(access);
@@ -103,6 +95,19 @@ void DBGraphConstructor::extractAccesses(clang::CFGBlock *B,
       }
     }
   }
+}
+
+std::string DBGraphConstructor::getColumnString(const clang::Expr *arg) const {
+  std::string columnNameStr;
+  if (llvm::Optional<clang::NamedDecl *> column = extractDecl(arg)) {
+    columnNameStr = (*column)->getDeclName().getAsString();
+  } else {
+    llvm::raw_string_ostream ostream(columnNameStr);
+    arg->printPretty(ostream, nullptr,
+                     clang::PrintingPolicy(context.getLangOpts()));
+    ostream.flush();
+  }
+  return columnNameStr;
 }
 
 void DBGraphConstructor::trace(clang::CFGBlock *B, PathFragment *curr,
@@ -144,7 +149,6 @@ void DBGraphConstructor::trace(clang::CFGBlock *B, PathFragment *curr,
 void DBGraphConstructor::run(
     const clang::ast_matchers::MatchFinder::MatchResult &result) {
   using namespace clang;
-
 
   // Find a txn function
   if (const auto *txnDecl = result.Nodes.getNodeAs<FunctionDecl>("txnMethod")) {
