@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
+if(UNIX AND NOT APPLE)
+        set(LINUX TRUE)
+endif()
+
 find_package(LLVM REQUIRED)
 find_package(Clang REQUIRED)
 
@@ -28,6 +32,11 @@ set(CLANG_TOOL_SRC
 # remove trailing whitespaces
 string(STRIP ${LLVM_LDFLAGS} LLVM_LDFLAGS)
 
+
 add_executable(clang-tool ${CLANG_TOOL_SRC})
-target_link_libraries(clang-tool ${CLANG_LIBS} ${LLVM_LIBS_CORE} ${LLVM_LDFLAGS})
+if(LINUX)
+	target_link_libraries(clang-tool -Wl,--start-group ${CLANG_LIBS} ${LLVM_LIBS_CORE} -Wl,--end-group ${LLVM_LDFLAGS})
+else()
+	target_link_libraries(clang-tool ${CLANG_LIBS} ${LLVM_LIBS_CORE} ${LLVM_LDFLAGS})
+endif()
 
