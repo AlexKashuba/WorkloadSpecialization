@@ -104,7 +104,7 @@
 // max number of rows touched per transaction
 #define MAX_ROW_PER_TXN				64
 #define QUERY_INTVL 				1UL
-#define MAX_TXN_PER_PART 			100
+#define MAX_TXN_PER_PART 			10000
 #define FIRST_PART_LOCAL 			true
 #define MAX_TUPLE_SIZE				1024 // in bytes
 // ==== [YCSB] ====
@@ -187,6 +187,7 @@ extern TestCases					g_test_case;
 #define YCSB						1
 #define TPCC						2
 #define TEST						3
+#define SYNTH						4
 // Concurrency Control Algorithm
 #define NO_WAIT						1
 #define WAIT_DIE					2
