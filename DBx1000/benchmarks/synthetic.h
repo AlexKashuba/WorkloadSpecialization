@@ -26,7 +26,8 @@ public:
 	void init(thread_t * h_thd, workload * h_wl, uint64_t part_id); 
 	RC run_txn(base_query * m_query);
 private:
-	RC run_synth();
+	RC run_synth_rdwr(int key);
+        RC run_synth_rdonly(int key);
 //	RC testConflict(int access_num);
 	
 	SynthWorkload * _wl;

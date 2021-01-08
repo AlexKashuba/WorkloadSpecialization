@@ -25,7 +25,7 @@ RC SynthWorkload::init_schema(const char *schema_file) {
 
 RC SynthWorkload::init_table() {
   RC rc = RCOK;
-  for (int rid = 0; rid < 10; rid++) {
+  for (int rid = 0; rid < SYNTH_ROWS; rid++) {
     row_t *new_row = NULL;
     uint64_t row_id;
     int part_id = 0;
@@ -34,8 +34,8 @@ RC SynthWorkload::init_table() {
     uint64_t primary_key = rid;
     new_row->set_primary_key(primary_key);
     new_row->set_value(0, rid);
-    new_row->set_value(1, 0.0);
-    new_row->set_value(2, 0);
+    new_row->set_value(1, 1.0);
+    new_row->set_value(2, 1);
     itemid_t *m_item =
         (itemid_t *)mem_allocator.alloc(sizeof(itemid_t), part_id);
     assert(m_item != NULL);

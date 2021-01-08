@@ -17,7 +17,7 @@
 // # of transactions to run for warmup
 #define WARMUP						0
 // YCSB or TPCC
-#define WORKLOAD YCSB
+#define WORKLOAD SYNTH
 // print the transaction latency distribution
 #define PRT_LAT_DISTR				false
 #define STATS_ENABLE				true
@@ -32,23 +32,23 @@
 //    pool
 // 3. per-partition malloc. each partition has its own memory pool
 //    which is mapped to a unique tile on the chip.
-#define MEM_ALLIGN					8 
+#define MEM_ALLIGN					8
 
 // [THREAD_ALLOC]
 #define THREAD_ALLOC				true
-#define THREAD_ARENA_SIZE			(1UL << 22) 
+#define THREAD_ARENA_SIZE			(1UL << 22)
 #define MEM_PAD 					true
 
-// [PART_ALLOC] 
+// [PART_ALLOC]
 #define PART_ALLOC 					false
-#define MEM_SIZE					(1UL << 30) 
+#define MEM_SIZE					(1UL << 30)
 #define NO_FREE						false
 
 /***********************************************/
 // Concurrency Control
 /***********************************************/
 // WAIT_DIE, NO_WAIT, DL_DETECT, TIMESTAMP, MVCC, HSTORE, OCC, VLL
-#define CC_ALG 						DL_DETECT
+#define CC_ALG MVCC
 
 // all transactions acquire tuples according to the primary key order.
 #define KEY_ORDER					false
@@ -65,7 +65,7 @@
 #define INDEX_STRUCT				IDX_HASH
 #define BTREE_ORDER 				16
 
-// [DL_DETECT] 
+// [DL_DETECT]
 #define DL_LOOP_DETECT				100000 	// 100 us
 #define DL_LOOP_TRIAL				1000	// 1 us
 #define NO_DL						KEY_ORDER
@@ -87,9 +87,9 @@
 #define PER_ROW_VALID				true
 // [HSTORE]
 // when set to true, hstore will not access the global timestamp.
-// This is fine for single partition transactions. 
+// This is fine for single partition transactions.
 #define HSTORE_LOCAL_TS				false
-// [VLL] 
+// [VLL]
 #define TXN_QUEUE_SIZE_LIMIT		THREAD_CNT
 
 /***********************************************/
@@ -123,18 +123,18 @@
 // For large warehouse count, the tables do not fit in memory
 // small tpcc schemas shrink the table size.
 #define TPCC_SMALL					true
-// Some of the transactions read the data but never use them. 
+// Some of the transactions read the data but never use them.
 // If TPCC_ACCESS_ALL == fales, then these parts of the transactions
 // are not modeled.
-#define TPCC_ACCESS_ALL 			false 
+#define TPCC_ACCESS_ALL 			false
 #define WH_UPDATE					true
 #define NUM_WH 						4
 //
-enum TPCCTxnType {TPCC_ALL, 
-				TPCC_PAYMENT, 
-				TPCC_NEW_ORDER, 
-				TPCC_ORDER_STATUS, 
-				TPCC_DELIVERY, 
+enum TPCCTxnType {TPCC_ALL,
+				TPCC_PAYMENT,
+				TPCC_NEW_ORDER,
+				TPCC_ORDER_STATUS,
+				TPCC_DELIVERY,
 				TPCC_STOCK_LEVEL};
 extern TPCCTxnType 					g_tpcc_txn_type;
 
@@ -145,6 +145,16 @@ extern TPCCTxnType 					g_tpcc_txn_type;
 #define LASTNAME_LEN 				16
 
 #define DIST_PER_WARE				10
+
+// [SYNTH]
+#define SYNTH_ROWS 10
+#define SYNTH_UNIFORM 1
+#define SYNTH_ZIPF 2
+#define SYNTH_DIST SYNTH_UNIFORM
+#define SYNTH_SLOW true
+#define SYNTH_PRIME 500
+
+
 
 /***********************************************/
 // TODO centralized CC management. 
