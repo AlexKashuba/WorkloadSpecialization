@@ -90,12 +90,12 @@ def collect_result(jobname, outname="results", header=False):
     run_command('python3 scripts/out_to_csv.py %s %s >> %s.csv' % (jobname, flag, outname))
     
 init_configs = [
-    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
-    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
-    {"config": {"CC_ALG" : "DL_DETECT", "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'dl_detect'},
-    {"config": {"CC_ALG" : "NO_WAIT",   "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'no_wait'},
-    {"config": {"CC_ALG" : "OCC",       "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'occ'},
-    {"config": {"CC_ALG" : "MVCC",      "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'mvcc'},
+    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
+    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
+    {"config": {"CC_ALG" : "DL_DETECT", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'dl_detect'},
+    {"config": {"CC_ALG" : "NO_WAIT",   "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'no_wait'},
+    {"config": {"CC_ALG" : "OCC",       "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'occ'},
+    {"config": {"CC_ALG" : "MVCC",      "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'mvcc'},
   ]
 
 def gen_rdwr_configs(prefix, zipf_theta):
@@ -108,13 +108,13 @@ def gen_rdwr_configs(prefix, zipf_theta):
             new_config['config']['ZIPF_THETA'] = zipf_theta
             new_config['jobname'] = new_config['jobname'] + "_" + prefix  + "_" + str(perc)
             new_configs.append(new_config)
-        perc += 0.2
+        perc += 0.25
     return new_configs
 
 
 def gen_thread_configs(prefix, zipf_theta):
     new_configs = []
-    for threads in ['8', '12', '26', '52']:
+    for threads in ['8', '12', '24', '46' '92']:
         for config in init_configs:
             new_config = deepcopy(config)
             new_config['config']['THREAD_CNT'] = threads
@@ -126,9 +126,10 @@ def gen_thread_configs(prefix, zipf_theta):
 
 def gen_slow_configs(prefix, zipf_theta):
     new_configs = []
-    for prime in range(10, 120, 20):
+    for prime in [200, 400, 600]:
         for config in init_configs:
             new_config = deepcopy(config)
+            new_config['config']['SYNTH_SLOW'] = "true"
             new_config['config']['SYNTH_PRIME'] = prime
             new_config['config']['ZIPF_THETA'] = zipf_theta
             new_config['jobname'] = new_config['jobname'] + "_" + prefix + "_" + str(prime)
