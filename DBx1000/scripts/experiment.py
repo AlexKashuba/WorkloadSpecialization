@@ -1,5 +1,6 @@
 #some parts taken from https://github.com/yuxiamit/DBx1000_logging/blob/master/tools/compile.py
 import subprocess
+from copy import deepcopy 
 import os
 import sys
 import json
@@ -32,7 +33,7 @@ def run_command(command, verbose=False):
             print("Command done!")
 
 def apply_opt_on_file(f):
-    command = "cd .. && git checkout -- ./DBx1000"
+    command = "cd .. && git checkout -- ./DBx1000/benchmarks/%s && git checkout -- ./DBx1000/storage/row.h" % f
     build_dir = "build"
     if f != "":
         command += " && ./clang-tool/%s/bin/clang-tool ./DBx1000/benchmarks/%s" % (build_dir, f)
@@ -87,17 +88,65 @@ def collect_result(jobname, outname="results", header=False):
     if header:
         flag = '-h'
     run_command('python3 scripts/out_to_csv.py %s %s >> %s.csv' % (jobname, flag, outname))
+    
+init_configs = [
+    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
+    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
+    {"config": {"CC_ALG" : "DL_DETECT", "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'dl_detect'},
+    {"config": {"CC_ALG" : "NO_WAIT",   "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'no_wait'},
+    {"config": {"CC_ALG" : "OCC",       "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'occ'},
+    {"config": {"CC_ALG" : "MVCC",      "WORKLOAD" : "SYNTH", "SYNTH_PRIME": "10","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'mvcc'},
+  ]
 
-configs = [
-    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
-    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH"}, "opt": "", 'jobname': 'timestamp'},
-    {"config": {"CC_ALG" : "DL_DETECT", "WORKLOAD" : "SYNTH"}, "opt": "", 'jobname': 'dl_detect'},
-    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "TPCC"}, "opt": "tpcc_txn.cpp", 'jobname': "tpcc_timestamp_opt"},
-    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "TPCC"}, "opt": "", 'jobname': 'tpcc_timestamp'},
-    {"config": {"CC_ALG" : "DL_DETECT", "WORKLOAD" : "TPCC"}, "opt": "", 'jobname': 'tpcc_dl_detect'},
-]
+def gen_rdwr_configs(prefix, zipf_theta):
+    new_configs = []
+    perc = 0
+    while perc <= 1:
+        for config in init_configs:
+            new_config = deepcopy(config)
+            new_config['config']['PERC_PAYMENT'] = perc
+            new_config['config']['ZIPF_THETA'] = zipf_theta
+            new_config['jobname'] = new_config['jobname'] + "_" + prefix  + "_" + str(perc)
+            new_configs.append(new_config)
+        perc += 0.2
+    return new_configs
+
+
+def gen_thread_configs(prefix, zipf_theta):
+    new_configs = []
+    for threads in ['8', '12', '26', '52']:
+        for config in init_configs:
+            new_config = deepcopy(config)
+            new_config['config']['THREAD_CNT'] = threads
+            new_config['config']['ZIPF_THETA'] = zipf_theta
+            new_config['jobname'] = new_config['jobname'] + "_" + prefix + "_" + str(threads)
+            new_configs.append(new_config)
+    return new_configs
+
+
+def gen_slow_configs(prefix, zipf_theta):
+    new_configs = []
+    for prime in range(10, 120, 20):
+        for config in init_configs:
+            new_config = deepcopy(config)
+            new_config['config']['SYNTH_PRIME'] = prime
+            new_config['config']['ZIPF_THETA'] = zipf_theta
+            new_config['jobname'] = new_config['jobname'] + "_" + prefix + "_" + str(prime)
+            new_configs.append(new_config)
+    return new_configs
+
+
+experiments  = {
+               'rdwr_perc_high': gen_rdwr_configs("high_perc", "0.8"),
+               'rdwr_perc_low': gen_rdwr_configs("low_perc", "0.1"),
+               'threads_high': gen_thread_configs("high_threads", "0.8"),
+               'threads_low': gen_thread_configs("low_threads", "0.1"),
+               'prime_high': gen_slow_configs("high_prime", "0.8"),
+               'prime_low': gen_slow_configs("low_prime", "0.1"),
+               }
     
 if __name__ == "__main__":
+    run_command("rm -rf data exe")
     run_command("mkdir -p exe")
     run_command("mkdir -p data")
 
@@ -105,11 +154,12 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == '-nobuild':
         build_flag=False
     
-    header = True
-    for conf in configs:
-        if build_flag:
-            build(conf)
-        run_job(conf)
-        jobname = conf['jobname']
-        collect_result(jobname, header=header)
-        header = False
+    for experiment, configs in experiments.items():
+        header = True
+        for conf in configs:
+            if build_flag:
+                build(conf)
+            run_job(conf)
+            jobname = conf['jobname']
+            collect_result(jobname, header=header, outname=experiment)
+            header = False
