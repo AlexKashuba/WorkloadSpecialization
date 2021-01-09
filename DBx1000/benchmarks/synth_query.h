@@ -10,9 +10,9 @@ class workload;
 enum SythQueryType {RDWR, RDONLY};
 
 class synth_query : public base_query {
-  uint64_t the_n;
-  double denom;
-  double zeta_2_theta;
+  static uint64_t the_n;
+  static double denom;
+  static double zeta_2_theta;
 
   // The following algorithm comes from the paper:
   // Quickly generating billion-record synthetic databases
@@ -44,8 +44,8 @@ public:
   SythQueryType type;
   int key;
   void init(uint64_t thd_id, workload *h_wl) override {
-    zeta_2_theta = zeta(2, g_zipf_theta);
     if (the_n == 0) {
+      zeta_2_theta = zeta(2, g_zipf_theta);
       //uint64_t table_size = g_synth_table_size / g_part_cnt;
       uint64_t table_size = SYNTH_ROWS; //g_synth_table_size;
       the_n = table_size - 1;
