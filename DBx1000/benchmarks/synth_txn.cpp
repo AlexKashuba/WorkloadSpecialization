@@ -74,6 +74,10 @@ RC SynthTxnMan::run_synth_rdwr(int key) {
   return rc;
 }
 
+static void fake_func(int i){
+    return;
+}
+
 RC SynthTxnMan::run_synth_rdonly(int key) {
   RC rc = RCOK;
   itemid_t *m_item;
@@ -86,7 +90,7 @@ RC SynthTxnMan::run_synth_rdonly(int key) {
   }
   int f2;
   row_local->get_value(2, f2);
-  slow(f2);
+  fake_func(f2);
   rc = finish(rc);
   return rc;
 }

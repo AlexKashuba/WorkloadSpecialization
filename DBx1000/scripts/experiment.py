@@ -90,15 +90,15 @@ def collect_result(jobname, outname="results", header=False):
     run_command('python3 scripts/out_to_csv.py %s %s >> %s.csv' % (jobname, flag, outname))
     
 init_configs = [
-    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
-    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
-    {"config": {"CC_ALG" : "DL_DETECT", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'dl_detect'},
-    {"config": {"CC_ALG" : "NO_WAIT",   "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'no_wait'},
-    {"config": {"CC_ALG" : "OCC",       "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'occ'},
-    {"config": {"CC_ALG" : "MVCC",      "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "10000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'mvcc'},
+    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
+    {"config": {"CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
+    {"config": {"CC_ALG" : "DL_DETECT", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'dl_detect'},
+    {"config": {"CC_ALG" : "NO_WAIT",   "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'no_wait'},
+    {"config": {"CC_ALG" : "OCC",       "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'occ'},
+    {"config": {"CC_ALG" : "MVCC",      "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'mvcc'},
   ]
 
-def gen_rdwr_configs(prefix, zipf_theta):
+def gen_rdwr_configs(prefix, zipf_theta, rows="100000"):
     new_configs = []
     perc = 0
     while perc <= 1:
@@ -106,19 +106,21 @@ def gen_rdwr_configs(prefix, zipf_theta):
             new_config = deepcopy(config)
             new_config['config']['PERC_PAYMENT'] = perc
             new_config['config']['ZIPF_THETA'] = zipf_theta
+            new_config['config']['SYNTH_ROWS'] = rows
             new_config['jobname'] = new_config['jobname'] + "_" + prefix  + "_" + str(perc)
             new_configs.append(new_config)
         perc += 0.25
     return new_configs
 
 
-def gen_thread_configs(prefix, zipf_theta):
+def gen_thread_configs(prefix, zipf_theta, rows="100000"):
     new_configs = []
-    for threads in ['8', '12', '24', '46' '92']:
+    for threads in ['8', '12', '24', '46', '92']:
         for config in init_configs:
             new_config = deepcopy(config)
             new_config['config']['THREAD_CNT'] = threads
             new_config['config']['ZIPF_THETA'] = zipf_theta
+            new_config['config']['SYNTH_ROWS'] = rows
             new_config['jobname'] = new_config['jobname'] + "_" + prefix + "_" + str(threads)
             new_configs.append(new_config)
     return new_configs
@@ -136,12 +138,37 @@ def gen_slow_configs(prefix, zipf_theta):
             new_configs.append(new_config)
     return new_configs
 
+def gen_uniform_configs(prefix):
+    new_configs = []
+    for config in init_configs:
+        new_config = deepcopy(config)
+        new_config['config']['SYNTH_DIST'] = "SYNTH_UNIFORM"
+        new_config['jobname'] = new_config['jobname'] + "_" + prefix
+        new_configs.append(new_config)
+    return new_configs
+
+def gen_tpcc_configs(prefix):
+    new_configs = []
+    for config in init_configs:
+        new_config = deepcopy(config)
+        new_config['config']['WORKLOAD'] = "TPCC"
+        if new_config['opt'] != "":
+            new_config['opt'] = 'tpcc_txn.cpp'
+        new_config['jobname'] = new_config['jobname'] + "_" + prefix
+        new_configs.append(new_config)
+    return new_configs
+
+
 
 experiments  = {
-               'rdwr_perc_high': gen_rdwr_configs("high_perc", "0.8"),
-               'rdwr_perc_low': gen_rdwr_configs("low_perc", "0.1"),
-               'threads_high': gen_thread_configs("high_threads", "0.8"),
-               'threads_low': gen_thread_configs("low_threads", "0.1"),
+#               'rdwr_perc_high': gen_rdwr_configs("high_perc", "0.8"),
+#               'rdwr_perc_low': gen_rdwr_configs("low_perc", "0.1"),
+#               'threads_high': gen_thread_configs("high_threads", "0.8"),
+#               'threads_low': gen_thread_configs("low_threads", "0.1"),
+               'small_threads_high': gen_thread_configs("small_high_threads", "0.8", rows="50000"),
+               'small_threads_low': gen_thread_configs("small_low_threads", "0.1", rows="50000"),
+               'tpcc_small': gen_tpcc_configs("tpcc_small"),
+               'uniform': gen_uniform_configs('uniform'),
                'prime_high': gen_slow_configs("high_prime", "0.8"),
                'prime_low': gen_slow_configs("low_prime", "0.1"),
                }
