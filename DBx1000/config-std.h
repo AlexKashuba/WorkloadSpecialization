@@ -71,7 +71,7 @@
 #define NO_DL						KEY_ORDER
 #define TIMEOUT						100000000000
 // [TIMESTAMP]
-#define TS_TWR						false
+#define TS_TWR						true
 #define TS_ALLOC					TS_CAS
 #define TS_BATCH_ALLOC				false
 #define TS_BATCH_NUM				1

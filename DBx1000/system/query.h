@@ -27,7 +27,7 @@ public:
 	ycsb_query * queries;
 #elif WORKLOAD == TPCC
 	tpcc_query * queries;
-#elif WORKLOAD == SYNTH
+#else
 	synth_query * queries;
 #endif
 	char pad[CL_SIZE - sizeof(void *) - sizeof(int)];
