@@ -107,7 +107,10 @@ def gen_rdwr_configs(prefix, zipf_theta, rows="100000"):
         for config in init_configs:
             new_config = deepcopy(config)
             new_config['config']['PERC_PAYMENT'] = perc
-            new_config['config']['ZIPF_THETA'] = zipf_theta
+            if zipf_theta == "0":
+                new_config['config']['SYNTH_DIST'] = "SYNTH_UNIFORM"
+            else:
+                new_config['config']['ZIPF_THETA'] = zipf_theta
             new_config['config']['SYNTH_ROWS'] = rows
             new_config['jobname'] = new_config['jobname'] + "_" + prefix  + "_" + str(perc)
             new_configs.append(new_config)
@@ -121,7 +124,10 @@ def gen_thread_configs(prefix, zipf_theta, rows="100000"):
         for config in init_configs:
             new_config = deepcopy(config)
             new_config['config']['THREAD_CNT'] = threads
-            new_config['config']['ZIPF_THETA'] = zipf_theta
+            if zipf_theta == "0":
+                new_config['config']['SYNTH_DIST'] = "SYNTH_UNIFORM"
+            else:
+                new_config['config']['ZIPF_THETA'] = zipf_theta
             new_config['config']['SYNTH_ROWS'] = rows
             new_config['jobname'] = new_config['jobname'] + "_" + prefix + "_" + str(threads)
             new_configs.append(new_config)
@@ -135,7 +141,10 @@ def gen_slow_configs(prefix, zipf_theta):
             new_config = deepcopy(config)
             new_config['config']['SYNTH_SLOW'] = "true"
             new_config['config']['SYNTH_PRIME'] = prime
-            new_config['config']['ZIPF_THETA'] = zipf_theta
+            if zipf_theta == "0":
+                new_config['config']['SYNTH_DIST'] = "SYNTH_UNIFORM"
+            else:
+                new_config['config']['ZIPF_THETA'] = zipf_theta
             new_config['config']['PERC_PAYMENT'] = "0.1"
             new_config['jobname'] = new_config['jobname'] + "_" + prefix + "_" + str(prime)
             new_configs.append(new_config)
@@ -152,13 +161,16 @@ def gen_uniform_configs(prefix, rows="100000"):
     return new_configs
 
 
-def gen_size_configs(prefix, zipf_theta):
+def gen_size_configs(prefix, zipf_theta, configs=init_configs):
     new_configs = []
     for rows in [10, 50, 100, 1000, 5000, 10000, 50000, 100000]:
-        for config in init_configs:
+        for config in configs:
             new_config = deepcopy(config)
             new_config['jobname'] = new_config['jobname'] + "_" + prefix + "_" + str(rows)
-            new_config['config']['ZIPF_THETA'] = zipf_theta
+            if zipf_theta == "0":
+                new_config['config']['SYNTH_DIST'] = "SYNTH_UNIFORM"
+            else:
+                new_config['config']['ZIPF_THETA'] = zipf_theta
             new_config['config']['SYNTH_ROWS'] = rows
             new_configs.append(new_config)
     return new_configs
@@ -190,20 +202,20 @@ configs_memalloc = [
 
 experiments  = {
                'rdwr_perc_high': gen_rdwr_configs("high_perc", "0.8"),
+               'rdwr_perc_uniform': gen_rdwr_configs("uni_perc", "0"),
                'rdwr_perc_low': gen_rdwr_configs("low_perc", "0.1"),
                'threads_high': gen_thread_configs("high_threads", "0.8"),
+               'threads_uni': gen_thread_configs("uni_threads", "0"),
                'threads_low': gen_thread_configs("low_threads", "0.1"),
-#               'small_threads_high': gen_thread_configs("small_high_threads", "0.8", rows="50000"),
-#               'small_threads_low': gen_thread_configs("small_low_threads", "0.1", rows="50000"),
                'tpcc_small': gen_tpcc_configs("tpcc_small"),
-               'uniform': gen_uniform_configs('uniform'),
                'prime_high': gen_slow_configs("high_prime", "0.8"),
+               'prime_uni': gen_slow_configs("uni_prime", "0"),
                'prime_low': gen_slow_configs("low_prime", "0.1"),
-#              'uniform_tiny': gen_uniform_configs('uniform_tiny', rows="100"),
-#               'uniform_nano': gen_uniform_configs('uniform_nano', rows="10"),
                 'size_low': gen_size_configs("low_size", "0.1"),
+                'size_uni': gen_size_configs("uni_size", "0"),
                 'size_high': gen_size_configs("high_size", "0.8"),
-                'memalloc': configs_memalloc,
+                'memalloc': gen_size_configs("memalloc", "0.6", configs=configs_memalloc),
+                'memalloc_uni': gen_size_configs("memalloc_uni", "0", configs=configs_memalloc),
                }
     
 if __name__ == "__main__":
