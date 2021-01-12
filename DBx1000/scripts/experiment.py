@@ -90,8 +90,8 @@ def collect_result(jobname, outname="results", header=False):
     run_command('python3 scripts/out_to_csv.py %s %s >> %s.csv' % (jobname, flag, outname))
     
 init_configs = [
-    {"config": {"TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
-    {"config": {"TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
+    {"config": {"TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt_twr"},
+    {"config": {"TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp_twr'},
     {"config": {"TS_TWR" : "false", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
     {"config": {"TS_TWR" : "false", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
     {"config": {"TS_TWR" : "false", "CC_ALG" : "DL_DETECT", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "100000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'dl_detect'},
@@ -157,7 +157,7 @@ def gen_size_configs(prefix, zipf_theta):
     for rows in [10, 50, 100, 1000, 5000, 10000, 50000, 100000]:
         for config in init_configs:
             new_config = deepcopy(config)
-            new_config['jobname'] = new_config['jobname'] + "_" + prefix
+            new_config['jobname'] = new_config['jobname'] + "_" + prefix + "_" + str(rows)
             new_config['config']['ZIPF_THETA'] = zipf_theta
             new_config['config']['SYNTH_ROWS'] = rows
             new_configs.append(new_config)
@@ -177,12 +177,12 @@ def gen_tpcc_configs(prefix):
 
     
 configs_memalloc = [
-    {"config": {"THREAD_ALLOC": "true", "TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
-    {"config": {"THREAD_ALLOC": "true", "TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
-    {"config": {"THREAD_ALLOC": "true", "TS_TWR" : "false", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
-    {"config": {"THREAD_ALLOC": "true", "TS_TWR" : "false", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
-    {"config": {"THREAD_ALLOC": "false", "TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
-    {"config": {"THREAD_ALLOC": "false", "TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
+    {"config": {"THREAD_ALLOC": "true", "TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt_twr_thread"},
+    {"config": {"THREAD_ALLOC": "true", "TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp_twr_thread'},
+    {"config": {"THREAD_ALLOC": "true", "TS_TWR" : "false", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt_thread"},
+    {"config": {"THREAD_ALLOC": "true", "TS_TWR" : "false", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp_thread'},
+    {"config": {"THREAD_ALLOC": "false", "TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt_twr"},
+    {"config": {"THREAD_ALLOC": "false", "TS_TWR" : "true", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp_twr'},
     {"config": {"THREAD_ALLOC": "false", "TS_TWR" : "false", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "synth_txn.cpp", 'jobname': "timestamp_opt"},
     {"config": {"THREAD_ALLOC": "false", "TS_TWR" : "false", "CC_ALG" : "TIMESTAMP", "WORKLOAD" : "SYNTH","SYNTH_SLOW": "false", "SYNTH_PRIME": "1","THREAD_CNT": "8", "PERC_PAYMENT": "0.5", "SYNTH_ROWS" : "1000", "SYNTH_DIST": "SYNTH_ZIPF", "ZIPF_THETA": "0.6"}, "opt": "",              'jobname': 'timestamp'},
 ]
