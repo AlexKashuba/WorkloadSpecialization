@@ -15,6 +15,7 @@ class DBGraphConstructor : public Finder {
   llvm::SmallSet<int64_t, 32> visitedFuncs;
   clang::CFGDomTree *currDomTree = nullptr;
   std::unordered_map<unsigned, PathFragment *> blockToFragmentMap;
+  std::unordered_set<unsigned> loopHeaders;
 
   void extractAccesses(clang::CFGBlock *B, PathFragment *curr);
 

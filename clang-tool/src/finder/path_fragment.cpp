@@ -1,8 +1,10 @@
 #include "path_fragment.h"
 
-std::string PathFragment::printGraph(llvm::StringRef functionName) {
+std::string
+PathFragment::printGraph(llvm::StringRef functionName,
+                         std::unordered_set<unsigned> &loopHeaders) {
   std::unordered_set<PathFragment *> prunned;
-  pruneGraph(prunned);
+  pruneGraph(prunned, loopHeaders);
 
   std::string out;
   llvm::raw_string_ostream ostream{out};
@@ -32,15 +34,19 @@ void addIfNotPresent(std::vector<PathFragment *> *v, PathFragment *el) {
   }
 }
 
-//Remove blocks from the graph that do not contain accesses
-void PathFragment::pruneGraph(std::unordered_set<PathFragment *> &visited) {
+// Remove blocks from the graph that do not contain accesses
+void PathFragment::pruneGraph(std::unordered_set<PathFragment *> &visited,
+                              std::unordered_set<unsigned> &loopHeaders) {
   auto *new_next = new std::vector<PathFragment *>;
-  for (auto child : *next) {
-    //Only visit each node once
-    if (!visited.count(child))
-      child->pruneGraph(visited);
+  visited.insert(this);
 
-    if (child->accesses.empty()) {
+  for (auto child : *next) {
+    // Only visit each node once
+    if (!visited.count(child))
+      child->pruneGraph(visited, loopHeaders);
+
+    if (child->accesses.empty() && !loopHeaders.count(child->blockId) &&
+        child->back->empty()) {
       for (auto grandchild : *child->next) {
         if (!grandchild->accesses.empty()) {
           addIfNotPresent(new_next, grandchild);
@@ -49,8 +55,8 @@ void PathFragment::pruneGraph(std::unordered_set<PathFragment *> &visited) {
     } else {
       addIfNotPresent(new_next, child);
     }
-    visited.insert(this);
   }
+
   delete next;
   next = new_next;
 }
@@ -64,5 +70,8 @@ void PathFragment::printGraphFragment(llvm::raw_ostream &ostream) {
   ostream << "\"];\n";
   for (PathFragment *child : *next) {
     ostream << "  " << blockId << " -> " << child->blockId << ";\n";
+  }
+  for (PathFragment *loopHeader : *back) {
+    ostream << "  " << blockId << " -> " << loopHeader->blockId << ";\n";
   }
 }

@@ -126,10 +126,12 @@ void DBGraphConstructor::trace(clang::CFGBlock *B, PathFragment *curr,
       continue;
     unsigned succId = succ->getBlockID();
 
-    // TODO: mark accesses in the loop with quantifier
     // Check that we are not stuck in a loop
-    if (currDomTree->dominates(succ, B) /*is a backedge*/)
+    if (currDomTree->dominates(succ, B) /*is a backedge*/) {
+      curr->back->emplace_back(blockToFragmentMap[succId]);
+      loopHeaders.insert(succId);
       continue;
+    }
 
     // Only visit each block once
     auto pfIterator = blockToFragmentMap.find(succId);
@@ -138,6 +140,7 @@ void DBGraphConstructor::trace(clang::CFGBlock *B, PathFragment *curr,
       continue;
     }
 
+    //TODO: PathFragments are probably leaking during graph pruning, use shared_ptr
     auto *pf = new PathFragment{.blockId = succId};
     curr->next->emplace_back(pf);
     blockToFragmentMap[succId] = pf;
@@ -180,7 +183,7 @@ void DBGraphConstructor::run(
 
       // Prune and print the access graph
       StringRef funcName = txnDecl->getName();
-      std::string graph = pathFragment.printGraph(funcName);
+      std::string graph = pathFragment.printGraph(funcName, loopHeaders);
 
       // Write the graph into a file
       std::error_code err;
