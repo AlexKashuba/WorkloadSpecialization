@@ -59,7 +59,7 @@ public:
     else
       type = RDONLY;
 
-#if SYNTH_UNIFORM
+#if SYNTH_DIST == SYNTH_UNIFORM
         key = (int)(rand() % SYNTH_ROWS);
 #else
         key = zipf(the_n, g_zipf_theta);
