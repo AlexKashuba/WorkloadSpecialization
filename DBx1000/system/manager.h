@@ -3,6 +3,7 @@
 
 #include "helper.h"
 #include "global.h"
+#include "system/mcs_lock.h"
 
 class row_t;
 class txn_man;
@@ -25,6 +26,7 @@ public:
 	txn_man * 		get_txn_man(int thd_id) { return _all_txns[thd_id]; };
 	void 			set_txn_man(txn_man * txn);
 private:
+        mcs_lock mcsLock;
 	pthread_mutex_t ts_mutex;
 	uint64_t 		timestamp;
 	pthread_mutex_t mutexes[BUCKET_CNT];

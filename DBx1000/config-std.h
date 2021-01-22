@@ -72,7 +72,7 @@
 #define TIMEOUT						100000000000
 // [TIMESTAMP]
 #define TS_TWR						true
-#define TS_ALLOC					TS_CAS
+#define TS_ALLOC					TS_MCS
 #define TS_BATCH_ALLOC				false
 #define TS_BATCH_NUM				1
 // [MVCC]
@@ -212,5 +212,6 @@ extern TestCases					g_test_case;
 #define TS_CAS						2
 #define TS_HW						3
 #define TS_CLOCK					4
+#define TS_MCS					    5
 
 #endif

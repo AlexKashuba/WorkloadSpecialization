@@ -24,6 +24,11 @@ Manager::get_ts(uint64_t thread_id) {
 	uint64_t time;
 	uint64_t starttime = get_sys_clock();
 	switch(g_ts_alloc) {
+	case TS_MCS:
+	        mcsLock.lock();
+	        time = ++timestamp;
+	        mcsLock.unlock();
+	        break;
 	case TS_MUTEX :
 		pthread_mutex_lock( &ts_mutex );
 		time = ++timestamp;
